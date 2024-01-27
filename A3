@@ -1,0 +1,171 @@
+// Source Code: operations on binary search tree
+#include <stdio.h>
+#include <stdlib.h>
+struct Node {
+    int key;
+    struct Node *left, *right;
+};
+struct Node* createNode(int key) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->key = key;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+}
+struct Node* insert(struct Node* root, int key) {
+    if (root == NULL)
+        return createNode(key);
+    if (key < root->key)
+        root->left = insert(root->left, key);
+    else if (key > root->key)
+        root->right = insert(root->right, key);
+    return root;
+}
+void inOrderTraversal(struct Node* root) {
+    if (root != NULL) {
+        inOrderTraversal(root->left);
+        printf("%d ", root->key);
+        inOrderTraversal(root->right);
+    }
+}
+struct Node* search(struct Node* root, int key) {
+    if (root == NULL || root->key == key)
+        return root;
+    if (key < root->key)
+        return search(root->left, key);
+    else
+        return search(root->right, key);
+}
+struct Node* findMin(struct Node* root) {
+    while (root->left != NULL)
+        root = root->left;
+    return root;
+}
+struct Node* deleteNode(struct Node* root, int key) {
+    if (root == NULL)
+        return root;
+    if (key < root->key)
+        root->left = deleteNode(root->left, key);
+    else if (key > root->key)
+        root->right = deleteNode(root->right, key);
+    else {
+        if (root->left == NULL) {
+            struct Node* temp = root->right;
+            free(root);
+            return temp;
+        } else if (root->right == NULL) {
+            struct Node* temp = root->left;
+            free(root);
+            return temp;
+        }
+        struct Node* temp = findMin(root->right);
+        root->key = temp->key;
+        root->right = deleteNode(root->right, temp->key);
+    }
+    return root;
+}
+void findPredecessorSuccessor(struct Node* root, int key, struct Node** predecessor, struct Node** successor) {
+    if (root == NULL)
+        return;
+    if (key < root->key) {
+        *successor = root;
+        findPredecessorSuccessor(root->left, key, predecessor, successor);
+    } else if (key > root->key) {
+        *predecessor = root;
+        findPredecessorSuccessor(root->right, key, predecessor, successor);
+    } else {
+        if (root->left != NULL)
+            *predecessor = findMin(root->left);
+        if (root->right != NULL)
+            *successor = findMin(root->right);
+    }
+}
+struct Node* findMax(struct Node* root) {
+    while (root->right != NULL)
+        root = root->right;
+    return root;
+}
+void freeTree(struct Node* root) {
+    if (root != NULL) {
+        freeTree(root->left);
+        freeTree(root->right);
+        free(root);
+    }
+}
+int main() {
+    struct Node* root = NULL;
+    int choice, key;
+    do {
+        printf("\nBinary Search Tree Operations:\n");
+        printf("1. Insert a key\n");
+        printf("2. In-order Traversal\n");
+        printf("3. Search a key\n");
+        printf("4. Delete a key\n");
+        printf("5. Find predecessor and successor\n");
+        printf("6. Find minimum and maximum keys\n");
+        printf("0. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter the key to insert: ");
+                scanf("%d", &key);
+                root = insert(root, key);
+                break;
+            case 2:
+                printf("In-order Traversal: ");
+                inOrderTraversal(root);
+                printf("\n");
+                break;
+            case 3:
+                printf("Enter a key to search: ");
+                scanf("%d", &key);
+                struct Node* searchResult = search(root, key);
+                if (searchResult != NULL)
+                    printf("Key %d found in the BST\n", key);
+                else
+                    printf("Key %d not found in the BST\n", key);
+                break;
+            case 4:
+                printf("Enter a key to delete: ");
+                scanf("%d", &key);
+                root = deleteNode(root, key);
+                printf("In-order Traversal after deletion of key %d: ", key);
+                inOrderTraversal(root);
+                printf("\n");
+                break;
+            case 5:
+                printf("Enter a key to find its predecessor and successor: ");
+                scanf("%d", &key);
+                struct Node* predecessor = NULL;
+                struct Node* successor = NULL;
+                findPredecessorSuccessor(root, key, &predecessor, &successor);
+                if (predecessor != NULL)
+                    printf("Predecessor of %d is %d\n", key, predecessor->key);
+                else
+                    printf("No predecessor for %d\n", key);
+                if (successor != NULL)
+                    printf("Successor of %d is %d\n", key, successor->key);
+                else
+                    printf("No successor for %d\n", key);
+                break;
+            case 6:
+                struct Node* minimum = findMin(root);
+                struct Node* maximum = findMax(root);
+                printf("Minimum key in the BST: %d\n", minimum->key);
+                printf("Maximum key in the BST: %d\n", maximum->key);
+                break;
+            case 0:
+                printf("Exiting program\n");
+                break;
+            default:
+                printf("Invalid choice. Please enter a valid option.\n");
+        }
+    } while (choice != 0);
+    freeTree(root);
+    return 0;
+}
+
